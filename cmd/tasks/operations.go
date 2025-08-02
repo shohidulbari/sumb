@@ -43,25 +43,36 @@ var createCmd = &cobra.Command{
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all tasks",
-	Long:  `Display all tasks in the database with their status and details.`,
+	Long:  `Display tasks in the database with their status and details. Shows max 10 latest tasks by default. Use --skip to paginate through older tasks.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		skip, _ := cmd.Flags().GetInt("skip")
+		
 		tm, err := db.NewTaskManager()
 		if err != nil {
 			return fmt.Errorf("failed to initialize task manager: %w", err)
 		}
 		defer tm.Close()
 
-		taskList, err := tm.ListTasks()
+		taskList, err := tm.ListTasksWithPagination(10, skip)
 		if err != nil {
 			return fmt.Errorf("failed to list tasks: %w", err)
 		}
 
 		if len(taskList) == 0 {
-			fmt.Println("📝 No tasks found. Create your first task with 'sumb task create -t \"Your Task\"'")
+			if skip > 0 {
+				fmt.Printf("📝 No more tasks found. You've reached the end of your task list.\n")
+			} else {
+				fmt.Println("📝 No tasks found. Create your first task with 'sumb task create -t \"Your Task\"'")
+			}
 			return nil
 		}
 
-		fmt.Printf("📋 Found %d task(s):\n\n", len(taskList))
+		fmt.Printf("📋 Found %d task(s)", len(taskList))
+		if skip > 0 {
+			fmt.Printf(" (skipped %d)", skip)
+		}
+		fmt.Printf(":\n\n")
+		
 		for _, task := range taskList {
 			status := "⏳"
 			if task.Completed {
@@ -74,6 +85,11 @@ var listCmd = &cobra.Command{
 			}
 			fmt.Printf("   Created: %s\n", task.CreatedAt.Format("2006-01-02 15:04:05"))
 			fmt.Println()
+		}
+
+		// Show pagination hint if there might be more tasks
+		if len(taskList) == 10 {
+			fmt.Printf("💡 To see more tasks, use: sumb task list --skip %d\n", skip+10)
 		}
 
 		return nil
@@ -142,4 +158,7 @@ func init() {
 	createCmd.Flags().StringP("title", "t", "", "Task title (required)")
 	createCmd.Flags().StringP("description", "d", "", "Task description")
 	createCmd.MarkFlagRequired("title")
+	
+	// Add pagination flag for list command
+	listCmd.Flags().IntP("skip", "s", 0, "Number of tasks to skip (for pagination)")
 } 

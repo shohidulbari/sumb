@@ -142,3 +142,29 @@ func (tm *TaskManager) DeleteTask(id int) error {
 
 	return nil
 } 
+
+func (tm *TaskManager) ListTasksWithPagination(limit, offset int) ([]Task, error) {
+	query := `
+	SELECT id, title, description, completed, created_at, updated_at
+	FROM tasks
+	ORDER BY created_at DESC
+	LIMIT ? OFFSET ?`
+
+	rows, err := tm.db.Query(query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []Task
+	for rows.Next() {
+		var task Task
+		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.Completed, &task.CreatedAt, &task.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+
+	return tasks, nil
+} 

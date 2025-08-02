@@ -208,4 +208,101 @@ func TestTaskManagerDatabaseIsolation(t *testing.T) {
 	if tasks2[0].Title != "Isolated Task 2" {
 		t.Errorf("Expected 'Isolated Task 2' in second database, got %s", tasks2[0].Title)
 	}
+}
+
+func TestTaskManagerPagination(t *testing.T) {
+	// Setup test database
+	tdb := NewTestDB(t)
+	defer tdb.Close(t)
+
+	// Create multiple tasks
+	tasks := []struct {
+		title       string
+		description string
+	}{
+		{"Task 1", "First task"},
+		{"Task 2", "Second task"},
+		{"Task 3", "Third task"},
+		{"Task 4", "Fourth task"},
+		{"Task 5", "Fifth task"},
+		{"Task 6", "Sixth task"},
+		{"Task 7", "Seventh task"},
+		{"Task 8", "Eighth task"},
+		{"Task 9", "Ninth task"},
+		{"Task 10", "Tenth task"},
+		{"Task 11", "Eleventh task"},
+		{"Task 12", "Twelfth task"},
+	}
+
+	for _, task := range tasks {
+		err := tdb.TaskManager.CreateTask(task.title, task.description)
+		if err != nil {
+			t.Fatalf("Failed to create task %s: %v", task.title, err)
+		}
+	}
+
+	// Test first page (limit 5, offset 0)
+	firstPage, err := tdb.TaskManager.ListTasksWithPagination(5, 0)
+	if err != nil {
+		t.Fatalf("Failed to get first page: %v", err)
+	}
+
+	if len(firstPage) != 5 {
+		t.Fatalf("Expected 5 tasks on first page, got %d", len(firstPage))
+	}
+
+	// Since all tasks have the same timestamp, they're ordered by ID (ASC)
+	// First page should have tasks with IDs 1-5
+	expectedIDs := []int{1, 2, 3, 4, 5}
+	for i, task := range firstPage {
+		if task.ID != expectedIDs[i] {
+			t.Errorf("Expected task %d to have ID %d, got ID %d", i+1, expectedIDs[i], task.ID)
+		}
+	}
+
+	// Test second page (limit 5, offset 5)
+	secondPage, err := tdb.TaskManager.ListTasksWithPagination(5, 5)
+	if err != nil {
+		t.Fatalf("Failed to get second page: %v", err)
+	}
+
+	if len(secondPage) != 5 {
+		t.Fatalf("Expected 5 tasks on second page, got %d", len(secondPage))
+	}
+
+	// Second page should have tasks with IDs 6-10
+	expectedIDs2 := []int{6, 7, 8, 9, 10}
+	for i, task := range secondPage {
+		if task.ID != expectedIDs2[i] {
+			t.Errorf("Expected task %d to have ID %d, got ID %d", i+1, expectedIDs2[i], task.ID)
+		}
+	}
+
+	// Test third page (limit 5, offset 10)
+	thirdPage, err := tdb.TaskManager.ListTasksWithPagination(5, 10)
+	if err != nil {
+		t.Fatalf("Failed to get third page: %v", err)
+	}
+
+	if len(thirdPage) != 2 {
+		t.Fatalf("Expected 2 tasks on third page, got %d", len(thirdPage))
+	}
+
+	// Third page should have tasks with IDs 11-12
+	expectedIDs3 := []int{11, 12}
+	for i, task := range thirdPage {
+		if task.ID != expectedIDs3[i] {
+			t.Errorf("Expected task %d to have ID %d, got ID %d", i+1, expectedIDs3[i], task.ID)
+		}
+	}
+
+	// Test empty page (limit 5, offset 15)
+	emptyPage, err := tdb.TaskManager.ListTasksWithPagination(5, 15)
+	if err != nil {
+		t.Fatalf("Failed to get empty page: %v", err)
+	}
+
+	if len(emptyPage) != 0 {
+		t.Fatalf("Expected 0 tasks on empty page, got %d", len(emptyPage))
+	}
 } 
