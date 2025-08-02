@@ -2,28 +2,23 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/sumb/cmd/notes"
 	"github.com/sumb/cmd/tasks"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "sumb",
-	Short: "A terminal-based task management application",
-	Long: `Sumb is a command-line task management tool that helps you organize and track your tasks.
-	
+	Short: "A terminal-based task and note management application",
+	Long: `Sumb is a command-line task and note management tool that helps you organize and track your tasks and notes.
+
 Features:
-- Create tasks with titles and descriptions
-- List all tasks
-- Mark tasks as complete
-- Delete tasks
+- Task management with completion tracking
+- Note management with simple body content
 - SQLite database storage for persistence
 
 Usage:
-  sumb task -c "task-title" -d "task-description"  # Quick create
-  sumb task create -t "title" -d "description"     # Create task
-  sumb task list                                    # List all tasks
-  sumb task complete <id>                           # Mark task complete
-  sumb task delete <id>                             # Delete task
-  sumb task delete-many <id1> <id2> <id3>           # Delete multiple tasks`,
+  sumb task     # Task management
+  sumb note     # Note management`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// If no subcommand is provided, show help
 		return cmd.Help()
@@ -37,4 +32,6 @@ func Execute() error {
 func init() {
 	// Add task subcommand
 	rootCmd.AddCommand(tasks.TaskCmd)
+	// Add note subcommand
+	rootCmd.AddCommand(notes.NoteCmd)
 } 
