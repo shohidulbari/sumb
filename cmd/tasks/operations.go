@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
+	"github.com/sumb/cmd/styles"
 	db "github.com/sumb/db"
 )
 
@@ -30,7 +31,7 @@ var createCmd = &cobra.Command{
 			return fmt.Errorf("failed to create task: %w", err)
 		}
 
-		fmt.Printf("✅ Task created!\n")
+		fmt.Printf(styles.TaskCreated)
 		fmt.Printf("Title: %s\n", title)
 		if description != "" {
 			fmt.Printf("Description: %s\n", description)
@@ -67,16 +68,21 @@ var listCmd = &cobra.Command{
 			return nil
 		}
 
+		fmt.Println()
 		fmt.Printf("📋 Found %d task(s)", len(taskList))
 		if skip > 0 {
 			fmt.Printf(" (skipped %d)", skip)
 		}
 		fmt.Printf(":\n\n")
 		
-		for _, task := range taskList {
+		for idx, task := range taskList {
 			status := "⏳"
 			if task.Completed {
 				status = "✅"
+			}
+
+			if idx == 0 {
+				fmt.Println(styles.Separator)
 			}
 
 			fmt.Printf("%s [%d] %s\n", status, task.ID, task.Title)
@@ -84,7 +90,7 @@ var listCmd = &cobra.Command{
 				fmt.Printf("   Description: %s\n", task.Description)
 			}
 			fmt.Printf("   Created: %s\n", task.CreatedAt.Format("2006-01-02 15:04:05"))
-			fmt.Println()
+			fmt.Println(styles.Separator)
 		}
 
 		// Show pagination hint if there might be more tasks
@@ -120,7 +126,10 @@ var completeCmd = &cobra.Command{
 			return fmt.Errorf("failed to complete task: %w", err)
 		}
 
-		fmt.Printf("✅ Task %d marked as complete!\n", id)
+		fmt.Println(styles.Separator)
+		fmt.Printf(styles.TaskCompleted)
+		fmt.Printf(" Id: %d\n", id)
+		fmt.Println(styles.Separator)
 		return nil
 	},
 }
@@ -149,7 +158,10 @@ var deleteCmd = &cobra.Command{
 			return fmt.Errorf("failed to delete task: %w", err)
 		}
 
-		fmt.Printf("🗑️  Task %d deleted successfully!\n", id)
+		fmt.Println(styles.Separator)
+		fmt.Printf(styles.TaskDeleted)
+		fmt.Printf(" Id: %d\n", id)
+		fmt.Println(styles.Separator)
 		return nil
 	},
 }
@@ -186,14 +198,15 @@ var deleteMultipleCmd = &cobra.Command{
 			}
 		}
 
-		// Report results
 		if len(deletedIDs) > 0 {
-			fmt.Printf("🗑️  Successfully deleted %d task(s): %v\n", len(deletedIDs), deletedIDs)
-		}
+			fmt.Println(styles.Separator)
+			fmt.Println(styles.TaskDeletedMany)
+			fmt.Printf(" Deleted: %v\n", deletedIDs)
+			fmt.Println(styles.Separator)
+		}	
 
 		if len(failedIDs) > 0 {
-			fmt.Printf("❌ Failed to delete %d task(s): %v\n", len(failedIDs), failedIDs)
-			return fmt.Errorf("some tasks could not be deleted")
+			fmt.Printf("Some tasks could not be deleted: %v\n", failedIDs)
 		}
 
 		return nil

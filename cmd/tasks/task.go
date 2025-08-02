@@ -27,11 +27,14 @@ var TaskCmd = &cobra.Command{
 				return fmt.Errorf("failed to create task: %w", err)
 			}
 
-			fmt.Printf("✅ Task created successfully!\n")
+			fmt.Println("--------------------------------")
+
+			fmt.Printf("🌟 Task created!\n")
 			fmt.Printf("Title: %s\n", title)
 			if description != "" {
 				fmt.Printf("Description: %s\n", description)
 			}
+			fmt.Println("--------------------------------")
 
 			return nil
 		}
