@@ -154,6 +154,52 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
+var deleteMultipleCmd = &cobra.Command{
+	Use:   "delete-many",
+	Short: "Delete multiple tasks",
+	Long:  `Delete multiple tasks by providing their IDs separated by spaces.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
+			return fmt.Errorf("at least one task ID is required")
+		}
+
+		tm, err := db.NewTaskManager()
+		if err != nil {
+			return fmt.Errorf("failed to initialize task manager: %w", err)
+		}
+		defer tm.Close()
+
+		var deletedIDs []int
+		var failedIDs []string
+
+		for _, arg := range args {
+			id, err := strconv.Atoi(arg)
+			if err != nil {
+				failedIDs = append(failedIDs, arg)
+				continue
+			}
+
+			if err := tm.DeleteTask(id); err != nil {
+				failedIDs = append(failedIDs, arg)
+			} else {
+				deletedIDs = append(deletedIDs, id)
+			}
+		}
+
+		// Report results
+		if len(deletedIDs) > 0 {
+			fmt.Printf("🗑️  Successfully deleted %d task(s): %v\n", len(deletedIDs), deletedIDs)
+		}
+
+		if len(failedIDs) > 0 {
+			fmt.Printf("❌ Failed to delete %d task(s): %v\n", len(failedIDs), failedIDs)
+			return fmt.Errorf("some tasks could not be deleted")
+		}
+
+		return nil
+	},
+}
+
 func init() {
 	createCmd.Flags().StringP("title", "t", "", "Task title (required)")
 	createCmd.Flags().StringP("description", "d", "", "Task description")

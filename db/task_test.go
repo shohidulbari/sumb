@@ -305,4 +305,72 @@ func TestTaskManagerPagination(t *testing.T) {
 	if len(emptyPage) != 0 {
 		t.Fatalf("Expected 0 tasks on empty page, got %d", len(emptyPage))
 	}
+}
+
+func TestTaskManagerDeleteMultiple(t *testing.T) {
+	// Setup test database
+	tdb := NewTestDB(t)
+	defer tdb.Close(t)
+
+	// Create multiple tasks
+	tasks := []struct {
+		title       string
+		description string
+	}{
+		{"Task 1", "First task"},
+		{"Task 2", "Second task"},
+		{"Task 3", "Third task"},
+		{"Task 4", "Fourth task"},
+		{"Task 5", "Fifth task"},
+	}
+
+	for _, task := range tasks {
+		err := tdb.TaskManager.CreateTask(task.title, task.description)
+		if err != nil {
+			t.Fatalf("Failed to create task %s: %v", task.title, err)
+		}
+	}
+
+	// Verify all tasks exist
+	allTasks, err := tdb.TaskManager.ListTasks()
+	if err != nil {
+		t.Fatalf("Failed to list tasks: %v", err)
+	}
+
+	if len(allTasks) != 5 {
+		t.Fatalf("Expected 5 tasks, got %d", len(allTasks))
+	}
+
+	// Test deleting multiple tasks (IDs 2, 3, 4)
+	idsToDelete := []int{2, 3, 4}
+	for _, id := range idsToDelete {
+		err := tdb.TaskManager.DeleteTask(id)
+		if err != nil {
+			t.Fatalf("Failed to delete task %d: %v", id, err)
+		}
+	}
+
+	// Verify tasks were deleted
+	remainingTasks, err := tdb.TaskManager.ListTasks()
+	if err != nil {
+		t.Fatalf("Failed to list remaining tasks: %v", err)
+	}
+
+	if len(remainingTasks) != 2 {
+		t.Fatalf("Expected 2 remaining tasks, got %d", len(remainingTasks))
+	}
+
+	// Verify specific tasks remain (IDs 1 and 5)
+	expectedIDs := []int{1, 5}
+	for i, task := range remainingTasks {
+		if task.ID != expectedIDs[i] {
+			t.Errorf("Expected remaining task %d to have ID %d, got ID %d", i+1, expectedIDs[i], task.ID)
+		}
+	}
+
+	// Test deleting non-existent task
+	err = tdb.TaskManager.DeleteTask(999)
+	if err == nil {
+		t.Error("Expected error when deleting non-existent task, got nil")
+	}
 } 

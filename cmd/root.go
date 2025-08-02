@@ -22,7 +22,8 @@ Usage:
   sumb task create -t "title" -d "description"     # Create task
   sumb task list                                    # List all tasks
   sumb task complete <id>                           # Mark task complete
-  sumb task delete <id>                             # Delete task`,
+  sumb task delete <id>                             # Delete task
+  sumb task delete-many <id1> <id2> <id3>           # Delete multiple tasks`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// If no subcommand is provided, show help
 		return cmd.Help()

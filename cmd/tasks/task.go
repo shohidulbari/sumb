@@ -44,6 +44,7 @@ func init() {
 	TaskCmd.AddCommand(listCmd)
 	TaskCmd.AddCommand(completeCmd)
 	TaskCmd.AddCommand(deleteCmd)
+	TaskCmd.AddCommand(deleteMultipleCmd)
 	
 	TaskCmd.Flags().StringP("create", "c", "", "Quick create a task with title")
 	TaskCmd.Flags().StringP("description", "d", "", "Task description (for quick create)")
