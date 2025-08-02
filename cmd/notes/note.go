@@ -1,7 +1,9 @@
 package notes
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 	db "github.com/sumb/db"
@@ -29,13 +31,47 @@ var NoteCmd = &cobra.Command{
 			fmt.Println("--------------------------------")
 
 			fmt.Printf("🌟 Note created!\n")
-			fmt.Printf("%s\n", body)
+			
+			// Check if the body is JSON and format it if so
+			if isJSON(body) {
+				formattedJSON, err := formatJSON(body)
+				if err == nil {
+					fmt.Printf("📄 JSON Note:\n%s\n", formattedJSON)
+				} else {
+					fmt.Printf("Body: %s\n", body)
+				}
+			} else {
+				fmt.Printf("Body: %s\n", body)
+			}
+			
 			fmt.Println("--------------------------------")
 
 			return nil
 		}
 		return cmd.Help()
 	},
+}
+
+// isJSON checks if a string is valid JSON
+func isJSON(str string) bool {
+	str = strings.TrimSpace(str)
+	return (strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")) ||
+		   (strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]"))
+}
+
+// formatJSON formats JSON with proper indentation
+func formatJSON(jsonStr string) (string, error) {
+	var jsonObj interface{}
+	if err := json.Unmarshal([]byte(jsonStr), &jsonObj); err != nil {
+		return "", err
+	}
+	
+	formatted, err := json.MarshalIndent(jsonObj, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	
+	return string(formatted), nil
 }
 
 func init() {

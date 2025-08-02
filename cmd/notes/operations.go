@@ -3,6 +3,7 @@ package notes
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/sumb/cmd/styles"
@@ -31,7 +32,18 @@ var createCmd = &cobra.Command{
 		}
 
 		fmt.Printf(styles.NoteCreated)
-		fmt.Printf("Body: %s\n", body)
+		
+		// Check if the body is JSON and format it if so
+		if isJSON(body) {
+			formattedJSON, err := formatJSON(body)
+			if err == nil {
+				fmt.Printf("📄 JSON Note:\n%s\n", formattedJSON)
+			} else {
+				fmt.Printf("Body: %s\n", body)
+			}
+		} else {
+			fmt.Printf("Body: %s\n", body)
+		}
 
 		return nil
 	},
@@ -77,6 +89,15 @@ var listCmd = &cobra.Command{
 			}
 
 			fmt.Printf("📄 [%d] %s\n", note.ID, note.Body)
+			
+			// Check if the body is JSON and format it if so
+			if isJSON(note.Body) {
+				formattedJSON, err := formatJSON(note.Body)
+				if err == nil {
+					fmt.Printf("   📄 JSON Content:\n%s\n", indentJSON(formattedJSON))
+				}
+			}
+			
 			fmt.Printf("   Created: %s\n", note.CreatedAt.Format("2006-01-02 15:04:05"))
 			fmt.Println(styles.Separator)
 		}
@@ -167,6 +188,18 @@ var deleteMultipleCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+// indentJSON adds proper indentation to JSON for display in list
+func indentJSON(jsonStr string) string {
+	lines := strings.Split(jsonStr, "\n")
+	var indentedLines []string
+	
+	for _, line := range lines {
+		indentedLines = append(indentedLines, "   "+line)
+	}
+	
+	return strings.Join(indentedLines, "\n")
 }
 
 func init() {
