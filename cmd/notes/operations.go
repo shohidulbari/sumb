@@ -61,7 +61,7 @@ var listCmd = &cobra.Command{
 			if skip > 0 {
 				fmt.Printf("📝 No more notes found. You've reached the end of your note list.\n")
 			} else {
-				fmt.Println("📝 No notes found. Create your first note with 'sumb note create -b \"Your note content\"'")
+				fmt.Println("📝 No notes found. Create your first note with 'sumb note -c \"Your note content\"'")
 			}
 			return nil
 		}

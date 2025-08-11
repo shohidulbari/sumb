@@ -38,7 +38,7 @@ var NoteCmd = &cobra.Command{
 			fmt.Println(styles.Separator)
 
 			fmt.Printf("🌟 Note created!\n")
-			fmt.Printf("Body: %s\n", body)
+			fmt.Printf("%s\n", body)
 			
 			fmt.Println(styles.Separator)
 
@@ -89,7 +89,7 @@ func createNoteInteractive() error {
 
 	fmt.Println(styles.Separator)
 	fmt.Printf("🌟 Note created!\n")
-	fmt.Printf("\n%s\n", body)
+	fmt.Printf("%s\n", body)
 	fmt.Println(styles.Separator)
 
 	return nil
