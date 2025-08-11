@@ -32,18 +32,7 @@ var createCmd = &cobra.Command{
 		}
 
 		fmt.Printf(styles.NoteCreated)
-		
-		// Check if the body is JSON and format it if so
-		if isJSON(body) {
-			formattedJSON, err := formatJSON(body)
-			if err == nil {
-				fmt.Printf("📄 JSON Note:\n%s\n", formattedJSON)
-			} else {
-				fmt.Printf("Body: %s\n", body)
-			}
-		} else {
-			fmt.Printf("Body: %s\n", body)
-		}
+		fmt.Printf("Body: %s\n", body)
 
 		return nil
 	},
@@ -55,6 +44,7 @@ var listCmd = &cobra.Command{
 	Long:  `Display notes in the database with their details. Shows max 10 latest notes by default. Use --skip to paginate through older notes.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		skip, _ := cmd.Flags().GetInt("skip")
+		jsonify, _ := cmd.Flags().GetBool("jsonify")
 		
 		nm, err := db.NewNoteManager()
 		if err != nil {
@@ -83,23 +73,16 @@ var listCmd = &cobra.Command{
 		}
 		fmt.Printf(":\n\n")
 		
-		for idx, note := range noteList {
-			if idx == 0 {
-				fmt.Println(styles.Separator)
-			}
-
-			fmt.Printf("📄 [%d] %s\n", note.ID, note.Body)
-			
-			// Check if the body is JSON and format it if so
-			if isJSON(note.Body) {
+		for _, note := range noteList {	
+			fmt.Printf("[%d] [%s]\n", note.ID, note.CreatedAt.Format("Jan 2, 2006 15:04"))
+			if jsonify && isJSON(note.Body) {
 				formattedJSON, err := formatJSON(note.Body)
 				if err == nil {
-					fmt.Printf("   📄 JSON Content:\n%s\n", indentJSON(formattedJSON))
+					fmt.Printf("%s\n\n", indentJSON(formattedJSON))
 				}
-			}
-			
-			fmt.Printf("   Created: %s\n", note.CreatedAt.Format("2006-01-02 15:04:05"))
-			fmt.Println(styles.Separator)
+			} else {
+				fmt.Printf("%s\n\n", note.Body)
+			}	
 		}
 
 		// Show pagination hint if there might be more notes
@@ -208,4 +191,6 @@ func init() {
 	
 	// Add pagination flag for list command
 	listCmd.Flags().IntP("skip", "s", 0, "Number of notes to skip (for pagination)")
+	// Add jsonify flag for list command
+	listCmd.Flags().Bool("jsonify", false, "Format JSON output in a pretty format")
 } 

@@ -31,18 +31,7 @@ var NoteCmd = &cobra.Command{
 			fmt.Println("--------------------------------")
 
 			fmt.Printf("🌟 Note created!\n")
-			
-			// Check if the body is JSON and format it if so
-			if isJSON(body) {
-				formattedJSON, err := formatJSON(body)
-				if err == nil {
-					fmt.Printf("📄 JSON Note:\n%s\n", formattedJSON)
-				} else {
-					fmt.Printf("Body: %s\n", body)
-				}
-			} else {
-				fmt.Printf("Body: %s\n", body)
-			}
+			fmt.Printf("Body: %s\n", body)
 			
 			fmt.Println("--------------------------------")
 
