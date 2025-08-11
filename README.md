@@ -15,7 +15,7 @@ A powerful CLI tool for managing notes, tasks, and pomodoros with ease. Built in
 
 ### Prerequisites
 
-- Go 1.19 or later
+- Go 1.21 or later
 - Git
 
 ### Option 1: Build from Source
