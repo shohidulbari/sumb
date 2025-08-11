@@ -13,10 +13,10 @@ import (
 type Pomodoro struct {
 	ID          int
 	Title       string
-	Duration    int // Duration in minutes
+	Duration    int
 	StartedAt   time.Time
 	CompletedAt *time.Time
-	Status      string // "active", "completed", "stopped"
+	Status      string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -85,11 +85,6 @@ func (pm *PomodoroManager) StopAllActivePomodoros() error {
 }
 
 func (pm *PomodoroManager) CreatePomodoro(title string, duration int) (*Pomodoro, error) {
-	// First, stop all active pomodoros to ensure only one runs at a time
-	if err := pm.StopAllActivePomodoros(); err != nil {
-		return nil, fmt.Errorf("failed to stop existing pomodoros: %w", err)
-	}
-
 	query := `
 	INSERT INTO pomodoros (title, duration, started_at, status, created_at, updated_at)
 	VALUES (?, ?, CURRENT_TIMESTAMP, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`

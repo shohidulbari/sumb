@@ -35,23 +35,32 @@ var startCmd = &cobra.Command{
 		}
 		defer pm.Close()
 
-		// Check if there's already an active pomodoro
 		active, err := pm.GetActivePomodoro()
 		if err != nil {
 			return fmt.Errorf("failed to check active pomodoro: %w", err)
 		}
 
 		if active != nil {
-			fmt.Printf("⚠️  Stopping existing pomodoro (ID: %d) to start new one...\n", active.ID)
+			endTime := active.StartedAt.Add(time.Duration(active.Duration) * time.Minute)
+			if time.Now().After(endTime) {
+				if err := pm.CompletePomodoro(active.ID); err != nil {
+					return fmt.Errorf("failed to complete existing pomodoro: %w", err)
+				}
+				fmt.Printf("Completed existing pomodoro (ID: %d) that was overdue\n", active.ID)
+			} else {
+				if err := pm.StopPomodoro(active.ID); err != nil {
+					return fmt.Errorf("failed to stop existing pomodoro: %w", err)
+				}
+				fmt.Printf("Stopped existing pomodoro (ID: %d) to start new one\n", active.ID)
+			}
 		}
 
-		// Create new pomodoro (this will automatically stop any existing ones)
 		pomodoro, err := pm.CreatePomodoro(title, duration)
 		if err != nil {
 			return fmt.Errorf("failed to create pomodoro: %w", err)
 		}
 
-		fmt.Printf("🍅 Pomodoro started! Title: %s\n", title)
+		fmt.Printf("Pomodoro started! Title: %s\n", title)
 		fmt.Printf("Duration: %d minutes\n", duration)
 		fmt.Printf("Started at: %s\n", pomodoro.StartedAt.Format("15:04:05"))
 		fmt.Printf("Use 'sumb pomodoro status' to check remaining time\n")
@@ -78,30 +87,27 @@ var statusCmd = &cobra.Command{
 		}
 
 		if active == nil {
-			fmt.Println("🍅 No active pomodoro found")
+			fmt.Println("No active pomodoro found")
 			return nil
 		}
 
-		// Calculate remaining time
 		endTime := active.StartedAt.Add(time.Duration(active.Duration) * time.Minute)
 		remaining := time.Until(endTime)
 
 		if remaining <= 0 {
-			// Pomodoro should be completed
 			if err := pm.CompletePomodoro(active.ID); err != nil {
 				return fmt.Errorf("failed to complete pomodoro: %w", err)
 			}
-			fmt.Println("🎉 Pomodoro completed!")
+			fmt.Println("Pomodoro completed!")
 			return nil
 		}
 
-		// Display status
 		minutes := int(remaining.Minutes())
 		seconds := int(remaining.Seconds()) % 60
 		progress := float64(active.Duration*60-int(remaining.Seconds())) / float64(active.Duration*60)
 
 		fmt.Println(styles.Separator)
-		fmt.Printf("🍅 Active Pomodoro (ID: %d)\n", active.ID)
+		fmt.Printf("Active Pomodoro (ID: %d)\n", active.ID)
 		fmt.Printf("Title: %s\n", active.Title)
 		fmt.Printf("Duration: %d minutes\n", active.Duration)
 		fmt.Printf("Started at: %s\n", active.StartedAt.Format("15:04:05"))
@@ -133,7 +139,6 @@ var timerCmd = &cobra.Command{
 			return fmt.Errorf("no active pomodoro found")
 		}
 
-		// Start the timer display
 		return runTimer(pm, active.ID, active.Duration)
 	},
 }
@@ -194,33 +199,26 @@ var listCmd = &cobra.Command{
 
 		if len(pomodoroList) == 0 {
 			if skip > 0 {
-				fmt.Printf("🍅 No more pomodoros found. You've reached the end of your pomodoro history.\n")
+				fmt.Printf("No more pomodoros found. You've reached the end of your pomodoro history.\n")
 			} else {
-				fmt.Println("🍅 No pomodoros found. Start your first pomodoro with 'sumb pomodoro start -t \"Work Session\" -d 25'")
+				fmt.Println("No pomodoros found. Start your first pomodoro with 'sumb pomodoro start -t \"Work Session\" -d 25'")
 			}
 			return nil
 		}
 
 		fmt.Println()
-		fmt.Printf("📋 Found %d pomodoro(s)", len(pomodoroList))
+		fmt.Printf("Found %d pomodoro(s)", len(pomodoroList))
 		if skip > 0 {
 			fmt.Printf(" (skipped %d)", skip)
 		}
 		fmt.Printf(":\n\n")
 		
 		for idx, pomodoro := range pomodoroList {
-			status := "⏳"
-			if pomodoro.Status == "completed" {
-				status = "✅"
-			} else if pomodoro.Status == "stopped" {
-				status = "⏹️"
-			}
-
 			if idx == 0 {
 				fmt.Println(styles.Separator)
 			}
 
-			fmt.Printf("%s [%d] %s (%d minutes)\n", status, pomodoro.ID, pomodoro.Title, pomodoro.Duration)
+			fmt.Printf("[%d] %s (%d minutes)\n", pomodoro.ID, pomodoro.Title, pomodoro.Duration)
 			fmt.Printf("   Started: %s\n", pomodoro.StartedAt.Format("2006-01-02 15:04:05"))
 			
 			if pomodoro.CompletedAt != nil {
@@ -231,9 +229,8 @@ var listCmd = &cobra.Command{
 			fmt.Println(styles.Separator)
 		}
 
-		// Show pagination hint if there might be more pomodoros
 		if len(pomodoroList) == 10 {
-			fmt.Printf("💡 To see more pomodoros, use: sumb pomodoro list --skip %d\n", skip+10)
+			fmt.Printf("To see more pomodoros, use: sumb pomodoro list --skip %d\n", skip+10)
 		}
 
 		return nil
@@ -241,11 +238,9 @@ var listCmd = &cobra.Command{
 }
 
 func runTimer(pm *db.PomodoroManager, pomodoroID, duration int) error {
-	// Set up signal handling for graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	// Calculate end time based on the pomodoro's start time
 	active, err := pm.GetActivePomodoro()
 	if err != nil {
 		return fmt.Errorf("failed to get active pomodoro: %w", err)
@@ -256,12 +251,11 @@ func runTimer(pm *db.PomodoroManager, pomodoroID, duration int) error {
 
 	endTime := active.StartedAt.Add(time.Duration(duration) * time.Minute)
 	
-	// Timer loop
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	fmt.Println("\n" + strings.Repeat("=", 50))
-	fmt.Printf("🍅 POMODORO TIMER: %s\n", active.Title)
+	fmt.Printf("POMODORO TIMER: %s\n", active.Title)
 	fmt.Println(strings.Repeat("=", 50))
 
 	for {
@@ -269,13 +263,12 @@ func runTimer(pm *db.PomodoroManager, pomodoroID, duration int) error {
 		case <-ticker.C:
 			remaining := time.Until(endTime)
 			if remaining <= 0 {
-				// Timer completed
 				if err := pm.CompletePomodoro(pomodoroID); err != nil {
 					return fmt.Errorf("failed to complete pomodoro: %w", err)
 				}
 
 				fmt.Println("\n" + strings.Repeat("=", 50))
-				fmt.Println("🎉 POMODORO COMPLETED!")
+				fmt.Println("POMODORO COMPLETED!")
 				fmt.Println(strings.Repeat("=", 50))
 				fmt.Printf("Title: %s\n", active.Title)
 				fmt.Printf("Duration: %d minutes\n", duration)
@@ -284,15 +277,12 @@ func runTimer(pm *db.PomodoroManager, pomodoroID, duration int) error {
 				return nil
 			}
 
-			// Display countdown with bigger text
 			minutes := int(remaining.Minutes())
 			seconds := int(remaining.Seconds()) % 60
 			
-			// Clear line and show big countdown
-			fmt.Printf("\r\033[K") // Clear current line
-			fmt.Printf("⏰  %02d:%02d  ", minutes, seconds)
+			fmt.Printf("\r\033[K")
+			fmt.Printf("  %02d:%02d  ", minutes, seconds)
 			
-			// Add visual progress bar
 			progress := float64(duration*60-int(remaining.Seconds())) / float64(duration*60)
 			barLength := 30
 			filled := int(progress * float64(barLength))
@@ -308,7 +298,6 @@ func runTimer(pm *db.PomodoroManager, pomodoroID, duration int) error {
 			fmt.Printf("] %d%%", int(progress*100))
 
 		case <-sigChan:
-			// User interrupted timer display - just exit, don't stop pomodoro
 			fmt.Println("\n\n" + strings.Repeat("=", 50))
 			fmt.Println("⏹️  TIMER DISPLAY STOPPED")
 			fmt.Println(strings.Repeat("=", 50))
@@ -325,6 +314,5 @@ func init() {
 	startCmd.Flags().IntP("session", "s", 25, "Session duration in minutes (default: 25)")
 	startCmd.MarkFlagRequired("title")
 	
-	// Add pagination flag for list command
 	listCmd.Flags().IntP("skip", "s", 0, "Number of pomodoros to skip (for pagination)")
 } 
