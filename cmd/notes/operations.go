@@ -13,7 +13,7 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a new note",
-	Long:  `Create a new note with a body.`,
+	Long:  `Create a new note with a body`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		body, _ := cmd.Flags().GetString("body")
 
@@ -32,7 +32,7 @@ var createCmd = &cobra.Command{
 		}
 
 		fmt.Printf(styles.NoteCreated)
-		fmt.Printf("Body: %s\n", body)
+		fmt.Printf("\n%s\n", body)
 
 		return nil
 	},
@@ -40,8 +40,8 @@ var createCmd = &cobra.Command{
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all notes",
-	Long:  `Display notes in the database with their details. Shows max 10 latest notes by default. Use --skip to paginate through older notes.`,
+	Short: "List notes",
+	Long:  `Displays up to 10 latest notes (use --skip to view older ones)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		skip, _ := cmd.Flags().GetInt("skip")
 		jsonify, _ := cmd.Flags().GetBool("jsonify")
@@ -129,7 +129,7 @@ var deleteCmd = &cobra.Command{
 var deleteMultipleCmd = &cobra.Command{
 	Use:   "delete-many",
 	Short: "Delete multiple notes",
-	Long:  `Delete multiple notes by providing their IDs separated by spaces.`,
+	Long:  `Delete multiple notes by space-separated IDs`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return fmt.Errorf("at least one note ID is required")
@@ -175,8 +175,8 @@ var deleteMultipleCmd = &cobra.Command{
 
 var searchCmd = &cobra.Command{
 	Use:   "search",
-	Short: "Search notes by content",
-	Long:  `Search through your notes by matching partial content in the note body.`,
+	Short: "Search notes",
+	Long:  `Search notes by matching partial text`,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		query := args[0]
