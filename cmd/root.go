@@ -9,14 +9,11 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "sumb",
-	Short: "A terminal-based task, note, and pomodoro management application",
-	Long: `Sumb is a command-line task, note, and pomodoro management tool that helps you organize and track your tasks, notes, and productivity sessions.
+	Short: "A terminal-based productivity application",
+	Long: `Sumb is a command-line productivity tool that helps you organize and track your tasks, notes, and productivity sessions.
 
 Features:
-- Task management with completion tracking
-- Note management with simple body content
-- Pomodoro timer with session tracking
-- SQLite database storage for persistence
+- Manage tasks, notes and pomodoro sessions using the command line.
 
 Usage:
   sumb task      # Task management
@@ -34,12 +31,8 @@ func Execute() error {
 }
 
 func init() {
-	// Add task subcommand
 	rootCmd.AddCommand(tasks.TaskCmd)
-	// Add note subcommand
 	rootCmd.AddCommand(notes.NoteCmd)
-	// Add pomodoro subcommand
 	rootCmd.AddCommand(pomodoro.PomodoroCmd)
-	// Add pomodoro alias
 	rootCmd.AddCommand(pomodoro.PdCmd)
 } 
