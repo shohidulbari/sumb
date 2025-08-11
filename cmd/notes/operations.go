@@ -173,7 +173,67 @@ var deleteMultipleCmd = &cobra.Command{
 	},
 }
 
-// indentJSON adds proper indentation to JSON for display in list
+var searchCmd = &cobra.Command{
+	Use:   "search",
+	Short: "Search notes by content",
+	Long:  `Search through your notes by matching partial content in the note body.`,
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		query := args[0]
+		skip, _ := cmd.Flags().GetInt("skip")
+		jsonify, _ := cmd.Flags().GetBool("jsonify")
+		
+		if query == "" {
+			return fmt.Errorf("search query is required")
+		}
+		
+		nm, err := db.NewNoteManager()
+		if err != nil {
+			return fmt.Errorf("failed to initialize note manager: %w", err)
+		}
+		defer nm.Close()
+
+		noteList, err := nm.SearchNotes(query, 10, skip)
+		if err != nil {
+			return fmt.Errorf("failed to search notes: %w", err)
+		}
+
+		if len(noteList) == 0 {
+			if skip > 0 {
+				fmt.Printf("🔍 No more search results found for '%s'. You've reached the end of the results.\n", query)
+			} else {
+				fmt.Printf("🔍 No notes found matching '%s'\n", query)
+			}
+			return nil
+		}
+
+		fmt.Println()
+		fmt.Printf("🔍 Found %d note(s) matching '%s'", len(noteList), query)
+		if skip > 0 {
+			fmt.Printf(" (skipped %d)", skip)
+		}
+		fmt.Printf(":\n\n")
+		
+		for _, note := range noteList {	
+			fmt.Printf("[%d] [%s]\n", note.ID, note.CreatedAt.Format("Jan 2, 2006 15:04"))
+			if jsonify && isJSON(note.Body) {
+				formattedJSON, err := formatJSON(note.Body)
+				if err == nil {
+					fmt.Printf("%s\n\n", indentJSON(formattedJSON))
+				}
+			} else {
+				fmt.Printf("%s\n\n", note.Body)
+			}	
+		}
+
+		if len(noteList) == 10 {
+			fmt.Printf("💡 To see more search results, use: sumb note search \"%s\" --skip %d\n", query, skip+10)
+		}
+
+		return nil
+	},
+}
+
 func indentJSON(jsonStr string) string {
 	lines := strings.Split(jsonStr, "\n")
 	var indentedLines []string
@@ -187,10 +247,9 @@ func indentJSON(jsonStr string) string {
 
 func init() {
 	createCmd.Flags().StringP("body", "b", "", "Note body (required)")
-	createCmd.MarkFlagRequired("body")
-	
-	// Add pagination flag for list command
+	createCmd.MarkFlagRequired("body")	
 	listCmd.Flags().IntP("skip", "s", 0, "Number of notes to skip (for pagination)")
-	// Add jsonify flag for list command
-	listCmd.Flags().Bool("jsonify", false, "Format JSON output in a pretty format")
+	listCmd.Flags().Bool("jsonify", false, "Format JSON output in a pretty format")	
+	searchCmd.Flags().IntP("skip", "s", 0, "Number of results to skip (for pagination)")
+	searchCmd.Flags().Bool("jsonify", false, "Format JSON output in a pretty format")
 } 

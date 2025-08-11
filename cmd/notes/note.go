@@ -17,7 +17,6 @@ var NoteCmd = &cobra.Command{
 	Short: "Manage notes",
 	Long:  `Manage your notes with various operations like create, list, and delete.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Handle quick create with -c flag
 		body, _ := cmd.Flags().GetString("create")
 		interactive, _ := cmd.Flags().GetBool("interactive")
 		
@@ -49,7 +48,6 @@ var NoteCmd = &cobra.Command{
 	},
 }
 
-// createNoteInteractive creates a note by reading from stdin interactively
 func createNoteInteractive() error {
 	fmt.Println("📝 Interactive Note Creation")
 	fmt.Println("Enter your note content (press Enter twice to finish):")
@@ -65,7 +63,6 @@ func createNoteInteractive() error {
 		
 		line := scanner.Text()
 		if line == "" && len(lines) > 0 && lines[len(lines)-1] == "" {
-			// Two empty lines in a row - finish input
 			break
 		}
 		
@@ -76,7 +73,6 @@ func createNoteInteractive() error {
 		return fmt.Errorf("error reading input: %w", err)
 	}
 	
-	// Remove the last empty line and join all lines
 	if len(lines) > 0 && lines[len(lines)-1] == "" {
 		lines = lines[:len(lines)-1]
 	}
@@ -105,14 +101,12 @@ func createNoteInteractive() error {
 	return nil
 }
 
-// isJSON checks if a string is valid JSON
 func isJSON(str string) bool {
 	str = strings.TrimSpace(str)
 	return (strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")) ||
 		   (strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]"))
 }
 
-// formatJSON formats JSON with proper indentation
 func formatJSON(jsonStr string) (string, error) {
 	var jsonObj interface{}
 	if err := json.Unmarshal([]byte(jsonStr), &jsonObj); err != nil {
@@ -132,6 +126,7 @@ func init() {
 	NoteCmd.AddCommand(listCmd)
 	NoteCmd.AddCommand(deleteCmd)
 	NoteCmd.AddCommand(deleteMultipleCmd)
+	NoteCmd.AddCommand(searchCmd)
 	
 	NoteCmd.Flags().StringP("create", "c", "", "Quick create a note with body")
 	NoteCmd.Flags().BoolP("interactive", "i", false, "Create a note interactively")

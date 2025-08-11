@@ -140,4 +140,34 @@ func (nm *NoteManager) ListNotesWithPagination(limit, offset int) ([]Note, error
 	}
 
 	return notes, nil
+}
+
+func (nm *NoteManager) SearchNotes(query string, limit, offset int) ([]Note, error) {
+	searchQuery := `
+	SELECT id, body, created_at, updated_at
+	FROM notes
+	WHERE body LIKE ?
+	ORDER BY created_at DESC
+	LIMIT ? OFFSET ?`
+
+	// Use %query% for partial matching (case-insensitive in SQLite)
+	searchPattern := "%" + query + "%"
+	
+	rows, err := nm.db.Query(searchQuery, searchPattern, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []Note
+	for rows.Next() {
+		var note Note
+		err := rows.Scan(&note.ID, &note.Body, &note.CreatedAt, &note.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, nil
 } 
