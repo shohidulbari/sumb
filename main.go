@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sumb/cmd"
+	"github.com/shohidulbari/sumb/cmd"
 )
 
 func main() {

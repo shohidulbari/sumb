@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	db "github.com/shohidulbari/sumb/db"
 	"github.com/spf13/cobra"
-	db "github.com/sumb/db"
 )
 
 var PomodoroCmd = &cobra.Command{

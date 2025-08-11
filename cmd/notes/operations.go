@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/shohidulbari/sumb/cmd/styles"
+	db "github.com/shohidulbari/sumb/db"
 	"github.com/spf13/cobra"
-	"github.com/sumb/cmd/styles"
-	db "github.com/sumb/db"
 )
 
 var createCmd = &cobra.Command{

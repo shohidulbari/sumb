@@ -22,7 +22,7 @@ A powerful CLI tool for managing notes, tasks, and pomodoros with ease. Built in
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/sumb.git
+git clone https://github.com/shohidulbari/sumb.git
 cd sumb
 
 # Build the binary
@@ -36,14 +36,14 @@ make install
 
 ```bash
 # Download and run the install script
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/sumb/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shohidulbari/sumb/main/install.sh | bash
 ```
 
 ### Option 3: Manual Build
 
 ```bash
 # Clone and build manually
-git clone https://github.com/YOUR_USERNAME/sumb.git
+git clone https://github.com/shohidulbari/sumb.git
 cd sumb
 go build -o sumb cmd/sumb/main.go
 

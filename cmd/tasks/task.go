@@ -3,8 +3,8 @@ package tasks
 import (
 	"fmt"
 
+	db "github.com/shohidulbari/sumb/db"
 	"github.com/spf13/cobra"
-	db "github.com/sumb/db"
 )
 
 var TaskCmd = &cobra.Command{

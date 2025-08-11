@@ -1,4 +1,4 @@
-module github.com/sumb
+module github.com/shohidulbari/sumb
 
 go 1.21
 

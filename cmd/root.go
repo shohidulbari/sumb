@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	"github.com/shohidulbari/sumb/cmd/notes"
+	"github.com/shohidulbari/sumb/cmd/pomodoro"
+	"github.com/shohidulbari/sumb/cmd/tasks"
 	"github.com/spf13/cobra"
-	"github.com/sumb/cmd/notes"
-	"github.com/sumb/cmd/pomodoro"
-	"github.com/sumb/cmd/tasks"
 )
 
 var rootCmd = &cobra.Command{
