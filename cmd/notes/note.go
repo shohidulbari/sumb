@@ -15,7 +15,7 @@ import (
 var NoteCmd = &cobra.Command{
 	Use:   "note",
 	Short: "Manage notes",
-	Long:  `Manage your notes with various operations like create, list, and delete.`,
+	Long:  `Easily create, list, search and delete notes`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		body, _ := cmd.Flags().GetString("create")
 		interactive, _ := cmd.Flags().GetBool("interactive")
@@ -35,12 +35,12 @@ var NoteCmd = &cobra.Command{
 				return fmt.Errorf("failed to create note: %w", err)
 			}
 
-			fmt.Println("--------------------------------")
+			fmt.Println(styles.Separator)
 
 			fmt.Printf("🌟 Note created!\n")
 			fmt.Printf("Body: %s\n", body)
 			
-			fmt.Println("--------------------------------")
+			fmt.Println(styles.Separator)
 
 			return nil
 		}
@@ -50,7 +50,8 @@ var NoteCmd = &cobra.Command{
 
 func createNoteInteractive() error {
 	fmt.Println("📝 Interactive Note Creation")
-	fmt.Println("Enter your note content (press Enter twice to finish):")
+	fmt.Println("Enter your note content (press Ctrl+D to finish):")
+	fmt.Println(styles.Separator)
 	
 	scanner := bufio.NewScanner(os.Stdin)
 	var lines []string
@@ -58,23 +59,16 @@ func createNoteInteractive() error {
 	for {
 		fmt.Print("> ")
 		if !scanner.Scan() {
+			// This happens when Ctrl+D is pressed (EOF)
 			break
 		}
 		
 		line := scanner.Text()
-		if line == "" && len(lines) > 0 && lines[len(lines)-1] == "" {
-			break
-		}
-		
 		lines = append(lines, line)
 	}
 	
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("error reading input: %w", err)
-	}
-	
-	if len(lines) > 0 && lines[len(lines)-1] == "" {
-		lines = lines[:len(lines)-1]
 	}
 	
 	body := strings.Join(lines, "\n")
@@ -95,16 +89,15 @@ func createNoteInteractive() error {
 
 	fmt.Println(styles.Separator)
 	fmt.Printf("🌟 Note created!\n")
-	fmt.Printf("Body:\n%s\n", body)
+	fmt.Printf("\n%s\n", body)
 	fmt.Println(styles.Separator)
 
 	return nil
 }
 
 func isJSON(str string) bool {
-	str = strings.TrimSpace(str)
-	return (strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")) ||
-		   (strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]"))
+	var js json.RawMessage
+	return json.Unmarshal([]byte(str), &js) == nil
 }
 
 func formatJSON(jsonStr string) (string, error) {
