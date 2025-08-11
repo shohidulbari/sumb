@@ -139,7 +139,7 @@ var listCmd = &cobra.Command{
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Update task status",
-	Long:  `Update a task's status. Valid statuses: TODO, IN_PROGRESS, COMPLETE.`,
+	Long:  `Update a task's status. Valid statuses: TODO, IN_PROGRESS, COMPLETED.`,
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := strconv.Atoi(args[0])
@@ -149,7 +149,7 @@ var statusCmd = &cobra.Command{
 
 		status := db.TaskStatus(strings.ToUpper(args[1]))
 		if !isValidStatus(status) {
-			return fmt.Errorf("invalid status: %s. Valid statuses: TODO, IN_PROGRESS, COMPLETE", args[1])
+			return fmt.Errorf("invalid status: %s. Valid statuses: TODO, IN_PROGRESS, COMPLETED", args[1])
 		}
 
 		tm, err := db.NewTaskManager()

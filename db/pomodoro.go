@@ -46,6 +46,10 @@ func NewPomodoroManager() (*PomodoroManager, error) {
 		return nil, fmt.Errorf("failed to create tables: %w", err)
 	}
 
+	if err := migratePomodoroStatuses(db); err != nil {
+		return nil, fmt.Errorf("failed to migrate pomodoro statuses: %w", err)
+	}
+
 	return &PomodoroManager{db: db}, nil
 }
 
@@ -57,13 +61,29 @@ func createPomodoroTables(db *sql.DB) error {
 		duration INTEGER NOT NULL,
 		started_at DATETIME NOT NULL,
 		completed_at DATETIME,
-		status TEXT NOT NULL DEFAULT 'active',
+		status TEXT NOT NULL DEFAULT 'ACTIVE',
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);`
 
 	_, err := db.Exec(query)
 	return err
+}
+
+func migratePomodoroStatuses(db *sql.DB) error {
+	queries := []string{
+		`UPDATE pomodoros SET status = 'ACTIVE' WHERE status = 'active'`,
+		`UPDATE pomodoros SET status = 'COMPLETED' WHERE status = 'completed'`,
+		`UPDATE pomodoros SET status = 'STOPPED' WHERE status = 'stopped'`,
+	}
+
+	for _, query := range queries {
+		if _, err := db.Exec(query); err != nil {
+			return fmt.Errorf("failed to execute migration query '%s': %w", query, err)
+		}
+	}
+
+	return nil
 }
 
 func (pm *PomodoroManager) Close() error {
@@ -73,8 +93,8 @@ func (pm *PomodoroManager) Close() error {
 func (pm *PomodoroManager) StopAllActivePomodoros() error {
 	query := `
 	UPDATE pomodoros 
-	SET status = 'stopped', updated_at = CURRENT_TIMESTAMP
-	WHERE status = 'active'`
+	SET status = 'STOPPED', updated_at = CURRENT_TIMESTAMP
+	WHERE status = 'ACTIVE'`
 
 	_, err := pm.db.Exec(query)
 	if err != nil {
@@ -87,7 +107,7 @@ func (pm *PomodoroManager) StopAllActivePomodoros() error {
 func (pm *PomodoroManager) CreatePomodoro(title string, duration int) (*Pomodoro, error) {
 	query := `
 	INSERT INTO pomodoros (title, duration, started_at, status, created_at, updated_at)
-	VALUES (?, ?, CURRENT_TIMESTAMP, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+	VALUES (?, ?, CURRENT_TIMESTAMP, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 
 	result, err := pm.db.Exec(query, title, duration)
 	if err != nil {
@@ -104,7 +124,7 @@ func (pm *PomodoroManager) CreatePomodoro(title string, duration int) (*Pomodoro
 		Title:     title,
 		Duration:  duration,
 		StartedAt: time.Now(),
-		Status:    "active",
+		Status:    "ACTIVE",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}, nil
@@ -114,7 +134,7 @@ func (pm *PomodoroManager) GetActivePomodoro() (*Pomodoro, error) {
 	query := `
 	SELECT id, title, duration, started_at, completed_at, status, created_at, updated_at
 	FROM pomodoros
-	WHERE status = 'active'
+	WHERE status = 'ACTIVE'
 	ORDER BY created_at DESC
 	LIMIT 1`
 
@@ -149,7 +169,7 @@ func (pm *PomodoroManager) GetActivePomodoro() (*Pomodoro, error) {
 func (pm *PomodoroManager) CompletePomodoro(id int) error {
 	query := `
 	UPDATE pomodoros 
-	SET status = 'completed', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+	SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
 	WHERE id = ?`
 
 	result, err := pm.db.Exec(query, id)
@@ -172,7 +192,7 @@ func (pm *PomodoroManager) CompletePomodoro(id int) error {
 func (pm *PomodoroManager) StopPomodoro(id int) error {
 	query := `
 	UPDATE pomodoros 
-	SET status = 'stopped', updated_at = CURRENT_TIMESTAMP
+	SET status = 'STOPPED', updated_at = CURRENT_TIMESTAMP
 	WHERE id = ?`
 
 	result, err := pm.db.Exec(query, id)
