@@ -12,7 +12,7 @@ func TestTaskManagerOperations(t *testing.T) {
 	// Test creating a task
 	title := "Test Task"
 	description := "Test Description"
-	err := tdb.TaskManager.CreateTask(title, description)
+	err := tdb.TaskManager.CreateTask(title, description, nil)
 	if err != nil {
 		t.Fatalf("Failed to create task: %v", err)
 	}
@@ -36,28 +36,28 @@ func TestTaskManagerOperations(t *testing.T) {
 		t.Errorf("Expected description %s, got %s", description, task.Description)
 	}
 
-	if task.Completed {
-		t.Error("New task should not be completed")
+	if task.Status != StatusTODO {
+		t.Error("New task should have TODO status")
 	}
 
-	// Test completing a task
-	err = tdb.TaskManager.CompleteTask(task.ID)
+	// Test updating task status
+	err = tdb.TaskManager.UpdateTaskStatus(task.ID, StatusComplete)
 	if err != nil {
-		t.Fatalf("Failed to complete task: %v", err)
+		t.Fatalf("Failed to update task status: %v", err)
 	}
 
-	// Verify task is completed
+	// Verify task status is updated
 	tasks, err = tdb.TaskManager.ListTasks()
 	if err != nil {
-		t.Fatalf("Failed to list tasks after completion: %v", err)
+		t.Fatalf("Failed to list tasks after status update: %v", err)
 	}
 
 	if len(tasks) != 1 {
-		t.Fatalf("Expected 1 task after completion, got %d", len(tasks))
+		t.Fatalf("Expected 1 task after status update, got %d", len(tasks))
 	}
 
-	if !tasks[0].Completed {
-		t.Error("Task should be completed")
+	if tasks[0].Status != StatusComplete {
+		t.Error("Task should have COMPLETE status")
 	}
 
 	// Test deleting a task
@@ -82,10 +82,10 @@ func TestTaskManagerErrorHandling(t *testing.T) {
 	tdb := NewTestDB(t)
 	defer tdb.Close(t)
 
-	// Test completing non-existent task
-	err := tdb.TaskManager.CompleteTask(999)
+	// Test updating status of non-existent task
+	err := tdb.TaskManager.UpdateTaskStatus(999, StatusComplete)
 	if err == nil {
-		t.Error("Expected error when completing non-existent task")
+		t.Error("Expected error when updating status of non-existent task")
 	}
 
 	// Test deleting non-existent task
@@ -111,7 +111,7 @@ func TestTaskManagerMultipleTasks(t *testing.T) {
 	}
 
 	for _, task := range tasks {
-		err := tdb.TaskManager.CreateTask(task.title, task.description)
+		err := tdb.TaskManager.CreateTask(task.title, task.description, nil)
 		if err != nil {
 			t.Fatalf("Failed to create task %s: %v", task.title, err)
 		}
@@ -167,7 +167,7 @@ func TestTaskManagerDatabaseIsolation(t *testing.T) {
 	defer tdb1.Close(t)
 
 	// Create a task in first database
-	err := tdb1.TaskManager.CreateTask("Isolated Task 1", "Test isolation")
+	err := tdb1.TaskManager.CreateTask("Isolated Task 1", "Test isolation", nil)
 	if err != nil {
 		t.Fatalf("Failed to create task in first database: %v", err)
 	}
@@ -177,7 +177,7 @@ func TestTaskManagerDatabaseIsolation(t *testing.T) {
 	defer tdb2.Close(t)
 
 	// Create a task in second database
-	err = tdb2.TaskManager.CreateTask("Isolated Task 2", "Test isolation")
+	err = tdb2.TaskManager.CreateTask("Isolated Task 2", "Test isolation", nil)
 	if err != nil {
 		t.Fatalf("Failed to create task in second database: %v", err)
 	}
@@ -235,7 +235,7 @@ func TestTaskManagerPagination(t *testing.T) {
 	}
 
 	for _, task := range tasks {
-		err := tdb.TaskManager.CreateTask(task.title, task.description)
+		err := tdb.TaskManager.CreateTask(task.title, task.description, nil)
 		if err != nil {
 			t.Fatalf("Failed to create task %s: %v", task.title, err)
 		}
@@ -325,7 +325,7 @@ func TestTaskManagerDeleteMultiple(t *testing.T) {
 	}
 
 	for _, task := range tasks {
-		err := tdb.TaskManager.CreateTask(task.title, task.description)
+		err := tdb.TaskManager.CreateTask(task.title, task.description, nil)
 		if err != nil {
 			t.Fatalf("Failed to create task %s: %v", task.title, err)
 		}
