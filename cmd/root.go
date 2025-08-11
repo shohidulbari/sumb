@@ -34,5 +34,4 @@ func init() {
 	rootCmd.AddCommand(tasks.TaskCmd)
 	rootCmd.AddCommand(notes.NoteCmd)
 	rootCmd.AddCommand(pomodoro.PomodoroCmd)
-	rootCmd.AddCommand(pomodoro.PdCmd)
 } 
