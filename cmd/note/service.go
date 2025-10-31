@@ -184,6 +184,7 @@ var DeleteCmd = &cobra.Command{
 		_, err := db.GetNoteById(noteID)
 		if err != nil {
 			fmt.Println(GetAlertWithUsageInfo("Invalid ID", "Use valid ID: sumb delete <Note ID>"))
+			return nil
 		}
 
 		err = db.Delete(noteID)
