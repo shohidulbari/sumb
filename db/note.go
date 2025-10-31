@@ -40,6 +40,17 @@ func GetDb() (*bolt.DB, bleve.Index) {
 		log.Fatal(err)
 	}
 
+	err = db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("notes"))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	indexMapping := bleve.NewIndexMapping()
 	index, err := bleve.New(blevePath, indexMapping)
 	if err != nil {
@@ -122,9 +133,9 @@ func Create(body string) (*NoteResponse, error) {
 	idBytes := encodeInt64(id)
 
 	err := db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte("notes"))
-		if err != nil {
-			return err
+		bucket := tx.Bucket([]byte("notes"))
+		if bucket == nil {
+			return berrosrs.ErrBucketNotFound
 		}
 		noteData, err := json.Marshal(note)
 		if err != nil {
@@ -212,7 +223,7 @@ func GetByID(id []byte, db *bolt.DB) (*Note, error) {
 		}
 		noteData := bucket.Get(id)
 		if noteData == nil {
-			return berrosrs.ErrInvalid
+			return berrosrs.ErrKeyRequired
 		}
 		return json.Unmarshal(noteData, &note)
 	})
