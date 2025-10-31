@@ -14,7 +14,7 @@ import (
 
 var ErrKeywordRequired = errors.New("keyword is required for searching notes")
 
-var createCmd = &cobra.Command{
+var CreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "New note",
 	Long:  `Create a new note`,
@@ -44,7 +44,7 @@ var createCmd = &cobra.Command{
 	},
 }
 
-var searchCmd = &cobra.Command{
+var SearchCmd = &cobra.Command{
 	Use:   "search",
 	Short: "Search notes",
 	Long:  `Search notes by text`,
@@ -72,7 +72,7 @@ var searchCmd = &cobra.Command{
 	},
 }
 
-var listCmd = &cobra.Command{
+var ListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List latest n notes",
 	Long:  `List latest n number of notes`,
@@ -94,7 +94,7 @@ var listCmd = &cobra.Command{
 	},
 }
 
-var showCmd = &cobra.Command{
+var ShowCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Show note by ID",
 	Long:  `Show note details by ID`,
@@ -126,6 +126,6 @@ var showCmd = &cobra.Command{
 }
 
 func init() {
-	searchCmd.Flags().StringP("keyword", "k", "", "Keyword to search notes")
-	listCmd.Flags().IntP("size", "s", 10, "Number of latest notes")
+	SearchCmd.Flags().StringP("keyword", "k", "", "Keyword to search notes")
+	ListCmd.Flags().IntP("size", "s", 10, "Number of latest notes")
 }

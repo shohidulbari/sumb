@@ -7,17 +7,20 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "sumb",
-	Short: "A terminal-based productivity application",
-	Long: `Sumb is a command-line productivity tool that helps you organize and track your tasks, notes, and productivity sessions.
+	Short: "Note manager",
+	Long: `Sumb is a terminal-based application to manage your notes 
 
-Features:
-- Manage tasks, notes and pomodoro sessions using the command line.
+	Features:
+	- Create notes using a text area form
+	- List latest notes in a tree view
+	- Search notes by keywords
+	- View note content in a scrollable viewport
 
 Usage:
-  sumb task      # Task management
-  sumb note      # Note management
-  sumb pomodoro  # Pomodoro timer management
-  sumb pd        # Alias for pomodoro`,
+  sumb create      # Note creation
+  sumb list        # List latest notes
+  sumb search      # Search notes by keyword
+  sumb show        # Show note in a viewport`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// If no subcommand is provided, show help
 		return cmd.Help()
@@ -29,5 +32,8 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.AddCommand(note.NoteCmd)
+	rootCmd.AddCommand(note.CreateCmd)
+	rootCmd.AddCommand(note.SearchCmd)
+	rootCmd.AddCommand(note.ListCmd)
+	rootCmd.AddCommand(note.ShowCmd)
 }
