@@ -48,7 +48,7 @@ var EditCmd = &cobra.Command{
 	Long:  `Edit note details by ID`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("note ID is required")
+			return fmt.Errorf("note ID is required. Use: sumb edit <Note ID>")
 		}
 		noteID := args[0]
 		note, err := db.GetNoteById(noteID)
@@ -88,7 +88,7 @@ var SearchCmd = &cobra.Command{
 	Long:  `Search notes by text`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Search string is required. Use sumb search <keyword>")
+			return fmt.Errorf("Search string is required. Use: sumb search <keyword>")
 		}
 		keyword := args[0]
 		if keyword == "" {
@@ -146,7 +146,7 @@ var ShowCmd = &cobra.Command{
 	Long:  `Show note details by ID`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("note ID is required")
+			return fmt.Errorf("Note ID is required. Use: sumb show <Note ID>")
 		}
 		noteID := args[0]
 		note, err := db.GetNoteById(noteID)
@@ -177,7 +177,7 @@ var DeleteCmd = &cobra.Command{
 	Long:  `Delete note details by ID`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("note ID is required")
+			return fmt.Errorf("Note ID is required. Use: sumb delete <Note ID>")
 		}
 		noteID := args[0]
 		note, err := db.GetNoteById(noteID)
