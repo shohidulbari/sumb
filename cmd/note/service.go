@@ -1,9 +1,7 @@
 package note
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -13,8 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var ErrKeywordRequired = errors.New("keyword is required for searching notes")
-
 var CreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "New note",
@@ -23,11 +19,12 @@ var CreateCmd = &cobra.Command{
 		form := RenderForm(nil)
 		p := tea.NewProgram(form)
 		if _, err := p.Run(); err != nil {
-			return fmt.Errorf("failed to run note form: %w", err)
+			fmt.Println(GetAlertWithUsageInfo("Failed to render note form", err.Error()))
+			return nil
 		}
 
 		if form.canceled {
-			fmt.Println("Note creation canceled.")
+			fmt.Println(Warn.Render("Note creation canceled."))
 			return nil
 		}
 
@@ -36,7 +33,9 @@ var CreateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Note created with ID: %s, %s\n", note.ID, note.Body)
+		fmt.Println(
+			Success.Render(fmt.Sprintf("🎉 Note created successfully with ID %s.\n", note.ID)),
+		)
 
 		return nil
 	},
@@ -48,15 +47,13 @@ var EditCmd = &cobra.Command{
 	Long:  `Edit note details by ID`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("note ID is required. Use: sumb edit <Note ID>")
+			fmt.Println(GetAlertWithUsageInfo("Note ID is required", "sumb edit <Note ID>"))
+			return nil
 		}
 		noteID := args[0]
 		note, err := db.GetNoteById(noteID)
 		if err != nil {
-			return err
-		}
-		if note == nil {
-			fmt.Printf("Note with ID %s not found.\n", noteID)
+			fmt.Println(GetAlertWithUsageInfo("Invalid ID", "Use valid ID: sumb edit <Note ID>"))
 			return nil
 		}
 
@@ -64,11 +61,12 @@ var EditCmd = &cobra.Command{
 		form.preValue = note.Body
 		p := tea.NewProgram(form)
 		if _, err := p.Run(); err != nil {
-			return fmt.Errorf("failed to run note form: %w", err)
+			fmt.Println(GetAlertWithUsageInfo("Failed to render note edit form", err.Error()))
+			return nil
 		}
 
 		if form.canceled {
-			fmt.Println("Note editing canceled.")
+			fmt.Println(Warn.Render("Note update canceled."))
 			return nil
 		}
 
@@ -77,7 +75,9 @@ var EditCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		log.Printf("Updated!")
+		fmt.Println(
+			Success.Render(fmt.Sprintf("🎉 Note with ID %s updated successfully.\n", note.ID)),
+		)
 		return nil
 	},
 }
@@ -88,11 +88,12 @@ var SearchCmd = &cobra.Command{
 	Long:  `Search notes by text`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Search string is required. Use: sumb search <keyword>")
+			fmt.Println(GetAlertWithUsageInfo("Search string is required", "sumb search <keyword>"))
+			return nil
 		}
 		keyword := args[0]
 		if keyword == "" {
-			return fmt.Errorf("%w", ErrKeywordRequired)
+			fmt.Println(GetAlertWithUsageInfo("Search string is required", "sumb search <keyword>"))
 		}
 
 		notes, err := db.Search(keyword)
@@ -101,7 +102,7 @@ var SearchCmd = &cobra.Command{
 		}
 
 		if len(notes) == 0 {
-			fmt.Println("No notes found.")
+			fmt.Println(Info.Render("No notes found. Try different keywords."))
 			return nil
 		}
 
@@ -121,7 +122,9 @@ var ListCmd = &cobra.Command{
 		if len(args) > 0 {
 			size, err = strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("Invalid size value: %s", err.Error())
+				fmt.Println(
+					GetAlertWithUsageInfo("Size must be a valid integer", "sumb list <size>"),
+				)
 			}
 		}
 		notes, err := db.ListLatestNotes(size)
@@ -130,11 +133,11 @@ var ListCmd = &cobra.Command{
 		}
 
 		if len(notes) == 0 {
-			fmt.Println("No notes found.")
+			fmt.Println(Info.Render("No notes found. Create a new note using: sumb create"))
 			return nil
 		}
 
-		tree := RenderTreeView(fmt.Sprintf("Latest %d notes", size), notes)
+		tree := RenderTreeView(fmt.Sprintf("Latest %d notes", len(notes)), notes)
 		fmt.Println(tree)
 		return nil
 	},
@@ -146,15 +149,12 @@ var ShowCmd = &cobra.Command{
 	Long:  `Show note details by ID`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Note ID is required. Use: sumb show <Note ID>")
+			fmt.Println(GetAlertWithUsageInfo("Note ID is required", "sumb show <Note ID>"))
 		}
 		noteID := args[0]
 		note, err := db.GetNoteById(noteID)
 		if err != nil {
-			return err
-		}
-		if note == nil {
-			fmt.Printf("Note with ID %s not found.\n", noteID)
+			fmt.Println(GetAlertWithUsageInfo("Invalid ID", "Use valid ID: sumb show <Note ID>"))
 			return nil
 		}
 		body := wordwrap.String(note.Body, 80)
@@ -164,7 +164,7 @@ var ShowCmd = &cobra.Command{
 		)
 
 		if _, err := p.Run(); err != nil {
-			fmt.Println("could not run program:", err)
+			fmt.Println(GetAlertWithUsageInfo("Could not run viewport", err.Error()))
 			os.Exit(1)
 		}
 		return nil
@@ -177,23 +177,22 @@ var DeleteCmd = &cobra.Command{
 	Long:  `Delete note details by ID`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("Note ID is required. Use: sumb delete <Note ID>")
+			fmt.Println(GetAlertWithUsageInfo("Note ID is required", "sumb delete <Note ID>"))
+			return nil
 		}
 		noteID := args[0]
-		note, err := db.GetNoteById(noteID)
+		_, err := db.GetNoteById(noteID)
 		if err != nil {
-			return err
-		}
-		if note == nil {
-			fmt.Printf("Note with ID %s not found.\n", noteID)
-			return nil
+			fmt.Println(GetAlertWithUsageInfo("Invalid ID", "Use valid ID: sumb delete <Note ID>"))
 		}
 
 		err = db.Delete(noteID)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Note with ID %s deleted successfully.\n", noteID)
+		fmt.Println(
+			Success.Render(fmt.Sprintf("🗑 Note with ID %s deleted successfully.\n", noteID)),
+		)
 		return nil
 	},
 }
