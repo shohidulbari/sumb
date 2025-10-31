@@ -65,10 +65,9 @@ var searchCmd = &cobra.Command{
 		}
 
 		fmt.Println("Search Results:")
-		for _, note := range notes {
-			fmt.Printf("- ID: %s, Body: %s\n", note.ID, note.Body)
-		}
 
+		tree := RenderTreeView(fmt.Sprintf("Search results for '%s'", keyword), notes)
+		fmt.Println(tree)
 		return nil
 	},
 }
