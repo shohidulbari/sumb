@@ -148,6 +148,40 @@ func Create(body string) (*NoteResponse, error) {
 	return &NoteResponse{ID: id, Body: body}, nil
 }
 
+func Update(id string, body string) error {
+	db, index := GetDb()
+	defer db.Close()
+	defer index.Close()
+
+	idBytes := encodeInt64(id)
+	log.Printf("Updating ID: %x\n", idBytes)
+
+	note := &Note{
+		Body: body,
+	}
+	err := db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("notes"))
+		if bucket == nil {
+			return berrosrs.ErrBucketNotFound
+		}
+		noteData, err := json.Marshal(note)
+		if err != nil {
+			return err
+		}
+		return bucket.Put(idBytes, noteData)
+	})
+	if err != nil {
+		return err
+	}
+
+	err = index.Index(id, note)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetByID(id []byte, db *bolt.DB) (*Note, error) {
 	var note Note
 	err := db.View(func(tx *bolt.Tx) error {
