@@ -49,8 +49,6 @@ func GetDb() (*bolt.DB, bleve.Index) {
 		}
 	}
 
-	log.Printf("Database and index opened at %s\n", dbDir)
-
 	return db, index
 }
 
@@ -87,7 +85,6 @@ func generateID(db *bolt.DB) string {
 			log.Fatal(err)
 		}
 	}
-	log.Printf("Current Seq: %+v\n", currentSeq)
 
 	currentId, err := strconv.ParseInt(currentSeq.Body, 10, 64)
 	if err != nil {
@@ -123,7 +120,6 @@ func Create(body string) (*NoteResponse, error) {
 	}
 	id := generateID(db)
 	idBytes := encodeInt64(id)
-	log.Printf("Generated ID: %x\n", idBytes)
 
 	err := db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte("notes"))
@@ -154,7 +150,6 @@ func Update(id string, body string) error {
 	defer index.Close()
 
 	idBytes := encodeInt64(id)
-	log.Printf("Updating ID: %x\n", idBytes)
 
 	note := &Note{
 		Body: body,
@@ -188,7 +183,6 @@ func Delete(id string) error {
 	defer index.Close()
 
 	idBytes := encodeInt64(id)
-	log.Printf("Deleting ID: %x\n", idBytes)
 
 	err := db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("notes"))
