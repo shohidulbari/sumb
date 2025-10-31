@@ -25,15 +25,12 @@ var CreateCmd = &cobra.Command{
 			return fmt.Errorf("failed to run note form: %w", err)
 		}
 
-		log.Println("Note form closed")
-
 		if form.canceled {
 			fmt.Println("Note creation canceled.")
 			return nil
 		}
 
 		noteBody := form.textarea.Value()
-		log.Printf("Note body: %s", noteBody)
 		note, err := db.Create(noteBody)
 		if err != nil {
 			return err
@@ -103,8 +100,6 @@ var SearchCmd = &cobra.Command{
 			fmt.Println("No notes found.")
 			return nil
 		}
-
-		fmt.Println("Search Results:")
 
 		tree := RenderTreeView(fmt.Sprintf("Search results for '%s'", keyword), notes)
 		fmt.Println(tree)
