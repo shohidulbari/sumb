@@ -182,6 +182,33 @@ func Update(id string, body string) error {
 	return nil
 }
 
+func Delete(id string) error {
+	db, index := GetDb()
+	defer db.Close()
+	defer index.Close()
+
+	idBytes := encodeInt64(id)
+	log.Printf("Deleting ID: %x\n", idBytes)
+
+	err := db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("notes"))
+		if bucket == nil {
+			return berrosrs.ErrBucketNotFound
+		}
+		return bucket.Delete(idBytes)
+	})
+	if err != nil {
+		return err
+	}
+
+	err = index.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetByID(id []byte, db *bolt.DB) (*Note, error) {
 	var note Note
 	err := db.View(func(tx *bolt.Tx) error {

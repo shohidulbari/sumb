@@ -165,6 +165,33 @@ var ShowCmd = &cobra.Command{
 	},
 }
 
+var DeleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete note by ID",
+	Long:  `Delete note details by ID`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return fmt.Errorf("note ID is required")
+		}
+		noteID := args[0]
+		note, err := db.GetNoteById(noteID)
+		if err != nil {
+			return err
+		}
+		if note == nil {
+			fmt.Printf("Note with ID %s not found.\n", noteID)
+			return nil
+		}
+
+		err = db.Delete(noteID)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Note with ID %s deleted successfully.\n", noteID)
+		return nil
+	},
+}
+
 func init() {
 	SearchCmd.Flags().StringP("keyword", "k", "", "Keyword to search notes")
 	ListCmd.Flags().IntP("size", "s", 10, "Number of latest notes")
