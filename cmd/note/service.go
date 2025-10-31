@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/wordwrap"
@@ -76,7 +77,7 @@ var EditCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		log.Printf("Updated Note body: %s", noteBody)
+		log.Printf("Updated!")
 		return nil
 	},
 }
@@ -86,7 +87,10 @@ var SearchCmd = &cobra.Command{
 	Short: "Search notes",
 	Long:  `Search notes by text`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		keyword, _ := cmd.Flags().GetString("keyword")
+		if len(args) < 1 {
+			return fmt.Errorf("Search string is required. Use sumb search <keyword>")
+		}
+		keyword := args[0]
 		if keyword == "" {
 			return fmt.Errorf("%w", ErrKeywordRequired)
 		}
@@ -112,7 +116,14 @@ var ListCmd = &cobra.Command{
 	Short: "List latest n notes",
 	Long:  `List latest n number of notes`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		size, _ := cmd.Flags().GetInt("size")
+		size := 10
+		var err error
+		if len(args) > 0 {
+			size, err = strconv.Atoi(args[0])
+			if err != nil {
+				return fmt.Errorf("Invalid size value: %s", err.Error())
+			}
+		}
 		notes, err := db.ListLatestNotes(size)
 		if err != nil {
 			return err
@@ -185,9 +196,4 @@ var DeleteCmd = &cobra.Command{
 		fmt.Printf("Note with ID %s deleted successfully.\n", noteID)
 		return nil
 	},
-}
-
-func init() {
-	SearchCmd.Flags().StringP("keyword", "k", "", "Keyword to search notes")
-	ListCmd.Flags().IntP("size", "s", 10, "Number of latest notes")
 }
