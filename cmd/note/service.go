@@ -19,7 +19,7 @@ var CreateCmd = &cobra.Command{
 	Short: "New note",
 	Long:  `Create a new note`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		form := RenderForm()
+		form := RenderForm(nil)
 		p := tea.NewProgram(form)
 		if _, err := p.Run(); err != nil {
 			return fmt.Errorf("failed to run note form: %w", err)
@@ -40,6 +40,46 @@ var CreateCmd = &cobra.Command{
 		}
 		fmt.Printf("Note created with ID: %s, %s\n", note.ID, note.Body)
 
+		return nil
+	},
+}
+
+var EditCmd = &cobra.Command{
+	Use:   "edit",
+	Short: "Edit note by ID",
+	Long:  `Edit note details by ID`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return fmt.Errorf("note ID is required")
+		}
+		noteID := args[0]
+		note, err := db.GetNoteById(noteID)
+		if err != nil {
+			return err
+		}
+		if note == nil {
+			fmt.Printf("Note with ID %s not found.\n", noteID)
+			return nil
+		}
+
+		form := RenderForm(&note.Body)
+		form.preValue = note.Body
+		p := tea.NewProgram(form)
+		if _, err := p.Run(); err != nil {
+			return fmt.Errorf("failed to run note form: %w", err)
+		}
+
+		if form.canceled {
+			fmt.Println("Note editing canceled.")
+			return nil
+		}
+
+		noteBody := form.textarea.Value()
+		err = db.Update(note.ID, noteBody)
+		if err != nil {
+			return err
+		}
+		log.Printf("Updated Note body: %s", noteBody)
 		return nil
 	},
 }

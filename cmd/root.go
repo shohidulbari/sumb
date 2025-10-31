@@ -36,4 +36,5 @@ func init() {
 	rootCmd.AddCommand(note.SearchCmd)
 	rootCmd.AddCommand(note.ListCmd)
 	rootCmd.AddCommand(note.ShowCmd)
+	rootCmd.AddCommand(note.EditCmd)
 }

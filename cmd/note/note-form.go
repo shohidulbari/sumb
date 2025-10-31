@@ -14,9 +14,10 @@ type model struct {
 	textarea textarea.Model
 	err      error
 	canceled bool
+	preValue string
 }
 
-func RenderForm() *model {
+func RenderForm(preValue *string) *model {
 	ti := textarea.New()
 	ti.Focus()
 	ti.CharLimit = 1000
@@ -29,10 +30,19 @@ func RenderForm() *model {
 	return &model{
 		textarea: ti,
 		err:      nil,
+		preValue: func() string {
+			if preValue != nil {
+				return *preValue
+			}
+			return ""
+		}(),
 	}
 }
 
 func (m *model) Init() tea.Cmd {
+	if m.preValue != "" {
+		m.textarea.SetValue(m.preValue)
+	}
 	return textarea.Blink
 }
 
