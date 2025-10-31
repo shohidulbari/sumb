@@ -69,7 +69,7 @@ func decodeInt64(b []byte) int64 {
 func generateID(db *bolt.DB) string {
 	currentSeq, err := GetByID([]byte("__id_seq__"), db)
 	if err != nil {
-		currentSeq = &Note{Body: "1"}
+		currentSeq = &Note{Body: "0"}
 		err := db.Update(func(tx *bolt.Tx) error {
 			bucket, err := tx.CreateBucketIfNotExists([]byte("notes"))
 			if err != nil {
