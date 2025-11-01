@@ -3,7 +3,7 @@
 set -e
 
 REPO="shohidulbari/sumb"
-VERSION="v1.0.0-beta" # Pre-release tag
+VERSION="v1.0.0" # Release tag
 BINARY_NAME="sumb"
 INSTALL_DIR="/usr/local/bin"
 DRY_RUN=false
