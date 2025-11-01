@@ -20,8 +20,7 @@ func formatNoteBody(body string) string {
 		take := body[:NOTE_BODY_TAKE_LIMIT]
 		wrapped := wordwrap.String(take, 50)
 
-		messageStyle := lipgloss.NewStyle().Foreground(HIGHLIGHT_COLOR).Italic(true)
-		message := messageStyle.Render(
+		message := Warn.Render(
 			fmt.Sprintf("... (truncated, %d more characters)", remainingCharacters),
 		)
 		return fmt.Sprintf(

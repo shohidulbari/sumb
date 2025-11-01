@@ -29,6 +29,10 @@ var CreateCmd = &cobra.Command{
 		}
 
 		noteBody := form.textarea.Value()
+		if noteBody == "" {
+			fmt.Println(Warn.Render("Note body cannot be empty. Note creation canceled."))
+			return nil
+		}
 		note, err := db.Create(noteBody)
 		if err != nil {
 			return err
@@ -104,6 +108,18 @@ var SearchCmd = &cobra.Command{
 		if len(notes) == 0 {
 			fmt.Println(Info.Render("No notes found. Try different keywords."))
 			return nil
+		}
+
+		if len(notes) > 10 {
+			fmt.Println(
+				Warn.Render(
+					fmt.Sprintf(
+						"Found %d notes. Please use more specific keyword. Showing 10 search results",
+						len(notes),
+					),
+				),
+			)
+			notes = notes[:10]
 		}
 
 		tree := RenderTreeView(fmt.Sprintf("Search results for '%s'", keyword), notes)
