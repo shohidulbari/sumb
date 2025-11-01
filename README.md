@@ -1,6 +1,6 @@
-# A simple and fast terminal utility to manage your notes
+# A simple and fast terminal utility to manage notes with full-text search
 
-**sumb** is a lightweight command-line tool designed to help you quickly create, organize, and manage your notes directly from the terminal.
+**sumb** is a lightweight command-line tool designed to help you quickly create, organize, and manage your notes directly from the terminal with full text search capabilities.
 
 ## 🧩 Installation
 
