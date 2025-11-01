@@ -26,6 +26,14 @@ Usage:
 	sumb edit <Note ID>   # Edit note by ID
 	sumb delete <Note ID> # Delete note by ID`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		versionFlag, err := cmd.Flags().GetBool("version")
+		if err != nil {
+			return err
+		}
+		if versionFlag {
+			cmd.Println("sumb version 1.0.0")
+			return nil
+		}
 		// If no subcommand is provided, show help
 		return cmd.Help()
 	},
@@ -36,6 +44,7 @@ func Execute() error {
 }
 
 func init() {
+	rootCmd.Flags().BoolP("version", "v", false, "Show the current version")
 	rootCmd.AddCommand(note.CreateCmd)
 	rootCmd.AddCommand(note.SearchCmd)
 	rootCmd.AddCommand(note.ListCmd)
