@@ -30,8 +30,8 @@ chmod +x install.sh
 
 After installation, you can use the following commands:
 
-- `sumb create`: Opens a terminal textarea and allows you to type your note. `ctrl+c` or `q` will store the note.
-- `sumb update <note_id>`: Opens the specified note in a terminal textarea for editing.
+- `sumb create`: Opens a terminal textarea and allows you to type your note. `ctrl+s` will store the note, `ctrl+c` to cancel the creation.
+- `sumb edit <note_id>`: Opens the specified note in a terminal textarea for editing.
 - `sumb list <size:number>`: Displays a list of all your latest notes with their IDs. By default shows latest 10 notes.
 - `sumb search <keyword:string>`: Searches for notes containing the specified keyword.
 - `sumb show <note_id>`: Displays the full content of note in a scrollable viewport.
